@@ -1,0 +1,16 @@
+# Terraform state files
+*.tfstate
+*.tfstate.*
+
+# Crash log
+crash.log
+
+# .terraform ディレクトリ（プラグインやキャッシュが入る）
+.terraform/
+
+# Terraform plan output
+*.tfplan
+
+# Windows 系の一時ファイル
+*.bak
+*.swp
