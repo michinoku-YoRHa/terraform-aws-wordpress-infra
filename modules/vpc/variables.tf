@@ -9,3 +9,7 @@ variable "azs" {
 variable "private_subnet_cidrs" {
     type = map(string)
 }
+
+variable "public_subnet_cidrs" {
+    type = map(string)
+}
