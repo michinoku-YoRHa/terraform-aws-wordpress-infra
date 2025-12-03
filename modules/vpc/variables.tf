@@ -1,7 +1,11 @@
 variable "vpc_cidr" {
-  type = string
+    type = string
 }
 
-variable "private_subnet_cidr_1a" {
-  type = string
+variable "azs" {
+    type = list(string)
+}
+
+variable "private_subnet_cidrs" {
+    type = map(string)
 }
