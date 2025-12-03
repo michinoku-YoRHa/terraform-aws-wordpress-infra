@@ -13,3 +13,14 @@ module "vpc_module" {
   }
   azs = ["ap-northeast-1a","ap-northeast-1c","ap-northeast-1d"]
 }
+
+module "sg_module" {
+  source = "../../modules/sg"
+
+  vpc_id = module.vpc_module.vpc_id
+}
+
+module "alb_module" {
+  source = "../../modules/alb"
+  alb_sg_id = module.sg_module.alb_sg_id
+}
