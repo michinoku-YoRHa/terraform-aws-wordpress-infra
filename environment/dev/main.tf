@@ -23,4 +23,12 @@ module "sg_module" {
 module "alb_module" {
   source = "../../modules/alb"
   alb_sg_id = module.sg_module.alb_sg_id
+  vpc_id =  module.vpc_module.vpc_id
+  private_subnet_id = module.vpc_module.private_subnet
+  log_bucket_id = module.s3_module.log_bucket
+  domain_name = "*.michinoku-study.com"
+}
+
+module "s3_module" {
+  source = "../../modules/s3"
 }
