@@ -32,3 +32,16 @@ module "alb_module" {
 module "s3_module" {
   source = "../../modules/s3"
 }
+
+module "ecs_module" {
+  source = "../../modules/ecs"
+  ecs_sg_id = module.sg_module.ecs_sg_id
+  private_subnet_id = module.vpc_module.private_subnet
+  tg_arn = module.alb_module.tg_arn
+  listener = module.alb_module.listner
+  listener_arn = module.alb_module.listener_arn
+  db_name = "demi"
+  db_endpoint = "demi"
+  db_username = "demi"
+  db_password = "demi"
+}
