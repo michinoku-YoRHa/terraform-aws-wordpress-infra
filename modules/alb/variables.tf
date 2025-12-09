@@ -10,6 +10,10 @@ variable "private_subnet_id" {
     type = list(string)
 }
 
+variable "public_subnet_id" {
+    type = list(string)
+}
+
 variable "log_bucket_id" {
     type = string
 }

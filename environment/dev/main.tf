@@ -24,7 +24,8 @@ module "alb_module" {
   source = "../../modules/alb"
   alb_sg_id = module.sg_module.alb_sg_id
   vpc_id =  module.vpc_module.vpc_id
-  private_subnet_id = module.vpc_module.private_subnet
+  public_subnet_id = module.vpc_module.public_subnet_id
+  private_subnet_id = module.vpc_module.private_subnet_id
   log_bucket_id = module.s3_module.log_bucket
   domain_name = "*.michinoku-study.com"
 }
@@ -44,4 +45,9 @@ module "ecs_module" {
   db_endpoint = "demi"
   db_username = "demi"
   db_password = "demi"
+}
+
+module "aurora_module" {
+  source = "../../modules/aurora"
+  private_subnet_id = module.vpc_module.private_subnet_id
 }
