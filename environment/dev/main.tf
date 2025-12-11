@@ -37,17 +37,30 @@ module "s3_module" {
 module "ecs_module" {
   source = "../../modules/ecs"
   ecs_sg_id = module.sg_module.ecs_sg_id
-  private_subnet_id = module.vpc_module.private_subnet
+  private_subnet_id = module.vpc_module.private_subnet_id
   tg_arn = module.alb_module.tg_arn
   listener = module.alb_module.listner
   listener_arn = module.alb_module.listener_arn
-  db_name = "demi"
-  db_endpoint = "demi"
-  db_username = "demi"
-  db_password = "demi"
+  db_name = var.db_name
+  db_endpoint = module.aurora_module.db_endpoint
+  db_username = var.db_username
+  db_password_arn = module.aurora_module.db_password_arn
 }
 
 module "aurora_module" {
   source = "../../modules/aurora"
   private_subnet_id = module.vpc_module.private_subnet_id
+  aurora_sg_id = module.sg_module.aurora_sg_id
+  db_name = var.db_name
+  db_username = var.db_username
+  db_instance_class = "db.t3.medium"
+  # メンテナンスウィンドウ日本時間火曜日の3:00~4:00
+  maintenance_window = "mon:18:00-mon:19:00"
+}
+
+module "route53_module" {
+  source = "../../modules/route53"
+  host_zone_name = "michinoku-study.com"
+  alb_dns_name = module.alb_module.alb_dns_name
+  alb_zone_id = module.alb_module.alb_zone_id
 }

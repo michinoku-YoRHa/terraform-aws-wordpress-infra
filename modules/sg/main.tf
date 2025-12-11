@@ -54,7 +54,7 @@ resource "aws_security_group" "aurora" {
 
 resource "aws_vpc_security_group_ingress_rule" "aurora_from_ecs" {
     security_group_id = aws_security_group.aurora.id
-    referenced_security_group_id = aws_security_group.ecs
+    referenced_security_group_id = aws_security_group.ecs.id
 
     from_port = 3306
     to_port = 3306
