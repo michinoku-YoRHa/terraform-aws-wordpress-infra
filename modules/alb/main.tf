@@ -8,8 +8,8 @@ resource "aws_lb" "alb" {
     load_balancer_type = "application"
     name = "wordpress"
     security_groups = [var.alb_sg_id]
-    subnets = var.private_subnet_id
-    internal = true
+    subnets = var.public_subnet_id
+    internal = false
 
     access_logs {
       bucket = var.log_bucket_id
@@ -28,6 +28,15 @@ resource "aws_lb_target_group" "tg" {
     protocol = "HTTP"
     vpc_id = var.vpc_id
     target_type = "ip"
+
+    health_check {
+        path                = "/wp-login.php"
+        matcher             = "200-399"
+        interval            = 30
+        timeout             = 5
+        healthy_threshold   = 2
+        unhealthy_threshold = 5
+    }
 }
 
 resource "aws_lb_listener" "https" {

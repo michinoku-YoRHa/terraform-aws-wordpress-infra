@@ -15,9 +15,31 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   })
 }
 
+resource "aws_iam_policy" "ecs_secrests_read_policy" {
+    name = "ecs-secrets-read-policy"
+
+    policy = jsonencode({
+        Version = "2012-10-17",
+        Statement = [
+            {
+                Effect = "Allow"
+                Action = [
+                    "secretsmanager:GetSecretValue"
+                ]
+                Resource = var.db_password_arn
+            }
+        ]
+    })
+}
+
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
     role = aws_iam_role.ecs_task_execution_role.name
     policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_secrests_read_policy" {
+    role = aws_iam_role.ecs_task_execution_role.name
+    policy_arn = aws_iam_policy.ecs_secrests_read_policy.arn
 }
 
 resource "aws_ecs_task_definition" "wordpress" {
@@ -44,8 +66,12 @@ resource "aws_ecs_task_definition" "wordpress" {
             environment = [
                 { name = "WORDPRESS_DB_HOST",     value = var.db_endpoint },
                 { name = "WORDPRESS_DB_USER",     value = var.db_username },
-                { name = "WORDPRESS_DB_PASSWORD", value = var.db_password },
                 { name = "WORDPRESS_DB_NAME",     value = var.db_name }
+            ]
+            secrets = [
+                {
+                name = "WORDPRESS_DB_PASSWORD"
+                valueFrom = var.db_password_arn }
             ]
         }
     ])

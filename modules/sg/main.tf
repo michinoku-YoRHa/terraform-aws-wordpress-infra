@@ -43,3 +43,27 @@ resource "aws_vpc_security_group_egress_rule" "ecs_to_all" {
     cidr_ipv4 = "0.0.0.0/0"
     ip_protocol = "-1"
 }
+
+resource "aws_security_group" "aurora" {
+    name = "aurora-sg"
+    vpc_id = var.vpc_id
+    tags = {
+      Name = "aurora-sg"
+    }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "aurora_from_ecs" {
+    security_group_id = aws_security_group.aurora.id
+    referenced_security_group_id = aws_security_group.ecs.id
+
+    from_port = 3306
+    to_port = 3306
+    ip_protocol = "tcp"
+}
+
+resource "aws_vpc_security_group_egress_rule" "aurora-to-all" {
+    security_group_id = aws_security_group.aurora.id
+
+    cidr_ipv4 = "0.0.0.0/0"
+    ip_protocol = "-1"
+}
