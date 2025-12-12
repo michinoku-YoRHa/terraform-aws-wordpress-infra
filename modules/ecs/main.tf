@@ -42,6 +42,33 @@ resource "aws_iam_role_policy_attachment" "ecs_secrests_read_policy" {
     policy_arn = aws_iam_policy.ecs_secrests_read_policy.arn
 }
 
+resource "aws_iam_role_policy_attachment" "ecs_efs_policy" {
+    role = aws_iam_role.ecs_task_execution_role.name
+    policy_arn = "arn:aws:iam::aws:policy/AmazonElasticFileSystemClientReadWriteAccess"
+}
+
+resource "aws_iam_policy" "ecs_access_s3" {
+    name = "ecs-access-s3-policy"
+
+    policy = jsonencode({
+        version = "2012-10-17",
+        Statement = [
+            {
+                Effect = "Allow"
+                Action = [
+                    "s3:PutObject",
+                    "s3:GetObject",
+                    "s3:ListBucket"
+                ]
+                Resource = [
+                    "${var.s3_content_bucket_arn}",
+                    "${var.s3_content_bucket_arn}/*"
+                ]
+            }
+        ]
+    })
+}
+
 resource "aws_ecs_task_definition" "wordpress" {
     family = "wordpress"
     network_mode = "awsvpc"
@@ -50,6 +77,19 @@ resource "aws_ecs_task_definition" "wordpress" {
     memory = "1024"
 
     execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+
+    volume {
+      name = "wordpress-efs"
+
+      efs_volume_configuration {
+        file_system_id = var.efs_file_system_id
+        transit_encryption = "ENABLED"
+        authorization_config {
+          access_point_id = var.efs_access_point_id
+          iam = "ENABLED"
+        }
+      }
+    }
 
     container_definitions = jsonencode([
         {
@@ -73,6 +113,13 @@ resource "aws_ecs_task_definition" "wordpress" {
                 name = "WORDPRESS_DB_PASSWORD"
                 valueFrom = var.db_password_arn }
             ]
+            mountPoints = [
+                {
+                    sourceVolume  = "wordpress-efs"
+                    containerPath = "/var/www/html"
+                    readOnly      = false
+                }
+            ]
         }
     ])
 }
@@ -85,7 +132,7 @@ resource "aws_ecs_service" "wordpress" {
     launch_type = "FARGATE"
 
     network_configuration {
-        subnets = var.private_subnet_id
+        subnets = [var.private_subnet_id[0]]
         security_groups = [var.ecs_sg_id]
         assign_public_ip = false
     }

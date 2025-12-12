@@ -45,6 +45,9 @@ module "ecs_module" {
   db_endpoint = module.aurora_module.db_endpoint
   db_username = var.db_username
   db_password_arn = module.aurora_module.db_password_arn
+  efs_file_system_id =  module.efs_module.aws_efs_file_system_id
+  efs_access_point_id = module.efs_module.aws_efs_access_point_id
+  s3_content_bucket_arn = module.s3_module.content_bucket_arn
 }
 
 module "aurora_module" {
@@ -63,4 +66,10 @@ module "route53_module" {
   host_zone_name = "michinoku-study.com"
   alb_dns_name = module.alb_module.alb_dns_name
   alb_zone_id = module.alb_module.alb_zone_id
+}
+
+module "efs_module" {
+  source = "../../modules/efs"
+  private_subnet_id = module.vpc_module.private_subnet_id
+  efs_sg_id = module.sg_module.efs_sg_id
 }

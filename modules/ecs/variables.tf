@@ -33,3 +33,15 @@ variable "listener" {
 variable "db_password_arn" {
     type = string
 }
+
+variable "efs_file_system_id" {
+    type = string
+}
+
+variable "efs_access_point_id" {
+    type = string
+}
+
+variable "s3_content_bucket_arn" {
+    type = string
+}
