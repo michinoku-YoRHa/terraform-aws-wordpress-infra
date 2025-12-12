@@ -3,6 +3,9 @@ resource "aws_vpc" "vpc" {
     tags = {
         Name = "web3-vpc"
     }
+
+    enable_dns_hostnames = true
+    enable_dns_support = true
 }
 
 // private subnet
