@@ -2,14 +2,14 @@ module "vpc_module" {
   source = "../../modules/vpc"
   vpc_cidr = "10.0.0.0/16"
     public_subnet_cidrs = {
-    ap-northeast-1a = "10.0.3.0/24",
-    ap-northeast-1c = "10.0.4.0/24",
-    ap-northeast-1d = "10.0.5.0/24",
-  }
-  private_subnet_cidrs = {
     ap-northeast-1a = "10.0.0.0/24",
     ap-northeast-1c = "10.0.1.0/24",
     ap-northeast-1d = "10.0.2.0/24",
+  }
+  private_subnet_cidrs = {
+    ap-northeast-1a = "10.0.10.0/24",
+    ap-northeast-1c = "10.0.11.0/24",
+    ap-northeast-1d = "10.0.12.0/24",
   }
   azs = ["ap-northeast-1a","ap-northeast-1c","ap-northeast-1d"]
 }
@@ -45,6 +45,9 @@ module "ecs_module" {
   db_endpoint = module.aurora_module.db_endpoint
   db_username = var.db_username
   db_password_arn = module.aurora_module.db_password_arn
+  efs_file_system_id =  module.efs_module.aws_efs_file_system_id
+  efs_access_point_id = module.efs_module.aws_efs_access_point_id
+  s3_content_bucket_arn = module.s3_module.content_bucket_arn
 }
 
 module "aurora_module" {
@@ -63,4 +66,10 @@ module "route53_module" {
   host_zone_name = "michinoku-study.com"
   alb_dns_name = module.alb_module.alb_dns_name
   alb_zone_id = module.alb_module.alb_zone_id
+}
+
+module "efs_module" {
+  source = "../../modules/efs"
+  private_subnet_id = module.vpc_module.private_subnet_id
+  efs_sg_id = module.sg_module.efs_sg_id
 }

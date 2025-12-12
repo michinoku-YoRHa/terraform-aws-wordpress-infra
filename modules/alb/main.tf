@@ -8,7 +8,7 @@ resource "aws_lb" "alb" {
     load_balancer_type = "application"
     name = "wordpress"
     security_groups = [var.alb_sg_id]
-    subnets = var.public_subnet_id
+    subnets = [var.public_subnet_id[0],var.public_subnet_id[1]]
     internal = false
 
     access_logs {

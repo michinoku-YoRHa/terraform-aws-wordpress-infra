@@ -2,8 +2,6 @@ data "aws_elb_service_account" "this" {}
 
 resource "aws_s3_bucket" "log_bucket" {
     force_destroy = true
-    
-    
 }
 
 resource "aws_s3_bucket_policy" "alb_log_policy" {
@@ -23,4 +21,8 @@ resource "aws_s3_bucket_policy" "alb_log_policy" {
       }
     ]
   })    
+}
+
+resource "aws_s3_bucket" "content_bucket" {
+    force_destroy = true
 }

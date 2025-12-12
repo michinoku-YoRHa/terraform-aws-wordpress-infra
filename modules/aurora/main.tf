@@ -30,8 +30,14 @@ resource "random_password" "db_password" {
     special = false
 }
 
+resource "random_string" "suffix" {
+    length = 5
+    upper = false
+    special = false
+}
+
 resource "aws_secretsmanager_secret" "db_password" {
-    name = "aurora-db-password"
+    name = "aurora-db-password-${random_string.suffix.id}"
 }
 
 resource "aws_secretsmanager_secret_version" "db_password" {
