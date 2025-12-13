@@ -46,22 +46,27 @@ resource "aws_iam_policy" "ecs_access_s3" {
     name = "ecs-access-s3-policy"
 
     policy = jsonencode({
-        Version = "2012-10-17",
-        Statement = [
-            {
-                Effect = "Allow",
-                Action = [
-                    "s3:PutObject",
-                    "s3:GetObject",
-                    "s3:ListBucket"
-                ],
-                Resource = [
-                    var.s3_content_bucket_arn,
-                    "${var.s3_content_bucket_arn}/*"
-                ]
-            }
-        ]
-    })
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "s3:ListBucket",
+          "s3:GetBucketLocation"
+        ],
+        Resource = var.s3_content_bucket_arn
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
+        ],
+        Resource = "${var.s3_content_bucket_arn}/*"
+      }
+    ]
+  })
 }
 
 resource "aws_iam_role" "ecs_task_role" {
@@ -80,6 +85,11 @@ resource "aws_iam_role" "ecs_task_role" {
 resource "aws_iam_role_policy_attachment" "ecs_efs_policy" {
     role = aws_iam_role.ecs_task_role.name
     policy_arn = "arn:aws:iam::aws:policy/AmazonElasticFileSystemClientReadWriteAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_access_s3_policy" {
+    role = aws_iam_role.ecs_task_role.name
+    policy_arn = aws_iam_policy.ecs_access_s3.arn
 }
 
 resource "aws_ecs_task_definition" "wordpress" {
