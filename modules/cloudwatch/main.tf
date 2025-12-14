@@ -1,25 +1,4 @@
-resource "aws_cloudwatch_metric_alarm" "ecs_task_count" {
-    alarm_name = "ecs-task-count"
-
-    namespace = "AWS/ECS"
-    metric_name = "RunningTaskCount"
-    statistic = "Minimum"
-    period = 60
-    evaluation_periods = 1
-    threshold = 1
-    comparison_operator = "LessThanThreshold"
-    treat_missing_data = "missing"
-
-    dimensions = {
-      ClusterName = var.ecs_cluster_name
-      ServiceName = var.ecs_service_name
-    }
-
-    alarm_actions = [
-        var.sns_topic_arn
-    ]
-}
-
+# ecs監視設定
 locals {
     ecs_utilization_metrics = {
         cpu = {
@@ -50,5 +29,33 @@ resource "aws_cloudwatch_metric_alarm" "ecs_utilization" {
     dimensions = {
       ClusterName = var.ecs_cluster_name
       ServiceName = var.ecs_service_name
+    }
+}
+
+# Aurora監視設定
+locals {
+    aurora_utilization_metrics = {
+        cpu = {
+            metric_name = "CPUUtilization"
+            threshold = 80
+        }
+    }
+}
+
+resource "aws_cloudwatch_metric_alarm" "aurora_utilization" {
+    for_each = local.aurora_utilization_metrics
+
+    alarm_name = "aurora-${each.key}-utilization"
+    namespace = "AWS/RDS"
+    metric_name = each.value.metric_name
+    statistic = "Average"
+    period = 60
+    evaluation_periods = 2
+    threshold = each.value.threshold
+    comparison_operator = "GreaterThanThreshold"
+    treat_missing_data = "missing"
+
+    dimensions = {
+        DBInstanceIdentifier = var.db_writer_instance_id
     }
 }

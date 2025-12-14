@@ -66,5 +66,4 @@ resource "aws_rds_cluster_instance" "aurora_writer" {
     cluster_identifier = aws_rds_cluster.wordpress.id
     instance_class = var.db_instance_class
     engine = aws_rds_cluster.wordpress.engine
-    count = 1
 }

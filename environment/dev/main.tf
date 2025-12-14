@@ -84,4 +84,11 @@ module "cloudwatch_module" {
   sns_topic_arn = module.sns_module.sns_topic_arn
   ecs_cluster_name = module.ecs_module.ecs_cluster_name
   ecs_service_name = module.ecs_module.ecs_service_name
+  db_writer_instance_id = module.aurora_module.db_writer_instance_id
+}
+
+module "eventbridge_module" {
+  source = "../../modules/eventbridge"
+  ecs_cluster_arn = module.ecs_module.ecs_cluster_arn
+  sns_topic_arn = module.sns_module.sns_topic_arn
 }
