@@ -73,3 +73,15 @@ module "efs_module" {
   private_subnet_id = module.vpc_module.private_subnet_id
   efs_sg_id = module.sg_module.efs_sg_id
 }
+
+module "sns_module" {
+  source = "../../modules/sns"
+  sns_mail_address = "kokoneko.it+handson1@gmail.com"
+}
+
+module "cloudwatch_module" {
+  source = "../../modules/cloudwatch"
+  sns_topic_arn = module.sns_module.sns_topic_arn
+  ecs_cluster_name = module.ecs_module.ecs_cluster_name
+  ecs_service_name = module.ecs_module.ecs_service_name
+}
