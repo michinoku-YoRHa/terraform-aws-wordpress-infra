@@ -13,3 +13,7 @@ variable "ecs_service_name" {
 variable "db_writer_instance_id" {
     type = string
 }
+
+variable "aurora_writer_identifier" {
+    type = string
+}

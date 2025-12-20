@@ -1,5 +1,10 @@
 resource "aws_ecs_cluster" "wordpress" {
     name = "wordpress-cluster"
+
+    setting {
+      name = "containerInsights"
+      value = "enabled"
+    }
 }
 
 resource "aws_iam_role" "ecs_task_execution_role" {

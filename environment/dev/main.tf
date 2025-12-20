@@ -81,10 +81,12 @@ module "sns_module" {
 
 module "cloudwatch_module" {
   source = "../../modules/cloudwatch"
+  depends_on = [ module.aurora_module, module.ecs_module ]
   sns_topic_arn = module.sns_module.sns_topic_arn
   ecs_cluster_name = module.ecs_module.ecs_cluster_name
   ecs_service_name = module.ecs_module.ecs_service_name
   db_writer_instance_id = module.aurora_module.db_writer_instance_id
+  aurora_writer_identifier = module.aurora_module.aurora_writer_identifier
 }
 
 module "eventbridge_module" {

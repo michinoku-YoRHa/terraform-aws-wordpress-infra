@@ -9,3 +9,7 @@ output "db_password_arn" {
 output "db_writer_instance_id" {
     value = aws_rds_cluster_instance.aurora_writer.id
 }
+
+output "aurora_writer_identifier" {
+    value = aws_rds_cluster_instance.aurora_writer.identifier
+}

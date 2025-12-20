@@ -1,4 +1,26 @@
 # ecs監視設定
+resource "aws_cloudwatch_metric_alarm" "ecs_task_count" {
+    alarm_name = "ecs-task-count"
+
+    namespace = "ContainerInsights"
+    metric_name = "RunningTaskCount"
+    statistic = "Minimum"
+    period = 60
+    evaluation_periods = 1
+    threshold = 1
+    comparison_operator = "LessThanThreshold"
+    treat_missing_data = "missing"
+
+    dimensions = {
+      ClusterName = var.ecs_cluster_name
+      ServiceName = var.ecs_service_name
+    }
+
+    alarm_actions = [
+        var.sns_topic_arn
+    ]
+}
+
 locals {
     ecs_utilization_metrics = {
         cpu = {
@@ -58,4 +80,40 @@ resource "aws_cloudwatch_metric_alarm" "aurora_utilization" {
     dimensions = {
         DBInstanceIdentifier = var.db_writer_instance_id
     }
+}
+
+data "aws_cloudwatch_log_group" "rds_os_metrics" {
+    name = "/aws/rds/instance/${var.aurora_writer_identifier}/osmetrics"
+}
+
+resource "aws_cloudwatch_log_metric_filter" "rds_dis_used_percent" {
+    name = "DiskUsedPercent"
+    log_group_name = data.aws_cloudwatch_log_group.rds_os_metrics.name
+
+    pattern = "{ ($.fileSys[0].mountPoint = \"/rdsdbdata\") }"
+
+    metric_transformation {
+    name      = "Custom-Disk_Used_Percent"
+    namespace = "Aurora-Metrics"
+    value     = "$.fileSys[0].usedPercent"
+
+    dimensions = {
+      DBInstanceIdentifier = "$.instanceID"
+    }
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "rds_dis_used_percent" {
+    alarm_name = "aurora-disk-used-percent"
+    metric_name = "Custom-Disk_Used_Percent"
+    namespace = "Aurora-Metrics"
+    dimensions = {
+      DBInstanceIdentifier = var.aurora_writer_identifier
+    }
+    statistic = "Average"
+    period = 60
+    evaluation_periods = 2
+    threshold = 80
+    comparison_operator = "GreaterThanThreshold"
+    treat_missing_data = "missing"
 }

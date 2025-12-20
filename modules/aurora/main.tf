@@ -45,6 +45,28 @@ resource "aws_secretsmanager_secret_version" "db_password" {
     secret_string = random_password.db_password.result
 }
 
+resource "aws_iam_role" "rds_monitoring_role" {
+    name = "rds-monitoring-role"
+
+    assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "monitoring.rds.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "rds_monitoring_policy" {
+    role = aws_iam_role.rds_monitoring_role.name
+    policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
+}
+
 resource "aws_rds_cluster" "wordpress" {
     cluster_identifier = "wordpress-aurora"
     engine = "aurora-mysql"
@@ -66,4 +88,7 @@ resource "aws_rds_cluster_instance" "aurora_writer" {
     cluster_identifier = aws_rds_cluster.wordpress.id
     instance_class = var.db_instance_class
     engine = aws_rds_cluster.wordpress.engine
+
+    monitoring_interval = 60
+    monitoring_role_arn = aws_iam_role.rds_monitoring_role.arn
 }
