@@ -86,7 +86,7 @@ data "aws_cloudwatch_log_group" "rds_os_metrics" {
     name = "/aws/rds/instance/${var.aurora_writer_identifier}/osmetrics"
 }
 
-resource "aws_cloudwatch_log_metric_filter" "rds_dis_used_percent" {
+resource "aws_cloudwatch_log_metric_filter" "aurora_disk_used_percent" {
     name = "DiskUsedPercent"
     log_group_name = data.aws_cloudwatch_log_group.rds_os_metrics.name
 
@@ -98,20 +98,79 @@ resource "aws_cloudwatch_log_metric_filter" "rds_dis_used_percent" {
     value     = "$.fileSys[0].usedPercent"
 
     dimensions = {
-      DBInstanceIdentifier = "$.instanceID"
+        DBInstanceIdentifier = "$.instanceID"
     }
   }
 }
 
-resource "aws_cloudwatch_metric_alarm" "rds_dis_used_percent" {
+resource "aws_cloudwatch_metric_alarm" "aurora_disk_used_percent" {
     alarm_name = "aurora-disk-used-percent"
     metric_name = "Custom-Disk_Used_Percent"
     namespace = "Aurora-Metrics"
     dimensions = {
-      DBInstanceIdentifier = var.aurora_writer_identifier
+        DBInstanceIdentifier = var.aurora_writer_identifier
     }
     statistic = "Average"
     period = 60
+    evaluation_periods = 2
+    threshold = 80
+    comparison_operator = "GreaterThanThreshold"
+    treat_missing_data = "missing"
+}
+
+resource "aws_cloudwatch_log_metric_filter" "aurora_memory_total" {
+    name = "MemoryTotal"
+    log_group_name = data.aws_cloudwatch_log_group.rds_os_metrics.name
+
+    pattern = "{ $.memory.total = * }"
+
+    metric_transformation {
+        name = "Custom-Memory_Total_Capacity"
+        namespace = "Aurora-Metrics"
+        value = "$.memory.total"
+
+        dimensions = {
+            DBInstanceIdentifier = "$.instanceID"
+        }
+    }
+}
+
+resource "aws_cloudwatch_metric_alarm" "aurora_memory_alarm" {
+    alarm_name = "aurora-memory-used-percent"
+
+metric_query {
+    id = "total"
+    metric {
+      metric_name = "Custom-Mem_Total_Capacity"
+      namespace   = "Aurora-Metrics"
+      period      = 60
+      stat        = "Average"
+      dimensions = {
+        DBInstanceIdentifier = var.aurora_writer_identifier
+      }
+    }
+  }
+
+  metric_query {
+    id = "free"
+    metric {
+      metric_name = "FreeableMemory"
+      namespace   = "AWS/RDS"
+      period      = 60
+      stat        = "Average"
+      dimensions = {
+        DBInstanceIdentifier = var.aurora_writer_identifier
+      }
+    }
+  }
+
+  metric_query {
+    id          = "used_percent"
+    expression  = "((total - (free / 1024)) / total) * 100"
+    label       = "Custom-Memory_Total_Capacity"
+    return_data = true
+  }
+
     evaluation_periods = 2
     threshold = 80
     comparison_operator = "GreaterThanThreshold"
